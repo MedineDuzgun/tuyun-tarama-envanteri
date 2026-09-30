@@ -873,6 +873,13 @@ function screenForm() {
     el("p", { class: "error", id: "err-kvkk", "aria-live": "polite" })
   ));
 
+  // Alttaki yapışkan navigasyon: Geri (karşılamaya) + İleri (formu gönderir)
+  form.append(el("div", { class: "nav" },
+    el("button", { class: "btn btn-ghost", type: "button", onclick: () => goto("welcome") }, "Geri"),
+    el("span", { class: "spacer" }),
+    el("button", { class: "btn", type: "submit" }, "İleri")
+  ));
+
   form.addEventListener("submit", (e) => { e.preventDefault(); ileriFromForm(); });
   return form;
 }
