@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tuyun Akademi · Tarama Envanteri</title>
+<meta name="description" content="Tuyun Akademi kariyer psikolojik danışman ekibinin hazırladığı tarama envanteri." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   MARKA RENKLERİ — tuyunakademi.com'dan ölçülmüştür.
+   Hiçbir renk kodu kuralların içine dağıtılmaz; hepsi burada.
+   ============================================================ */
+:root {
+  --navy:      #1d2e4b; /* Başlıklar, ana buton, seçili cevap */
+  --gold:      #e0a700; /* Modal adım başlıkları, alt çizgi, 1. adım halkası, cevaplanmış madde işareti */
+  --yellow:    #fbd264; /* Deneme paketleri kartı, tamamlanan taşlar, randevu butonu */
+  --petrol:    #426d8a; /* Danışmanlık paketleri kartı */
+  --blue:      #3374a5; /* 2. adım ikonları */
+  --blue-line: #498cbb; /* 2. adım çizgisi */
+  --teal:      #49a0b6; /* "Paketini seç" etiketi, marka vurgusu */
+  --navy-btn:  #1b4360; /* Kartlardaki yuvarlak ok butonu */
+  --stone:     #d4d2d5; /* Henüz açılmamış taş */
+
+  /* Yüzey ve metin */
+  --bg:        #ffffff;
+  --surface:   #f5f8fb; /* Yalnızca soru satırları */
+  --text:      #22314d;
+  --muted:     #5b6b86;
+  --border:    #e3e9f1;
+  --danger:    #c0392b;
+
+  /* Türetilmiş roller (temayla değişir) */
+  --btn-bg:    var(--navy);
+  --btn-text:  #ffffff;
+  --select-bg: var(--navy);
+  --select-text: #ffffff;
+  --focus:     var(--blue);
+
+  --line-max: 60ch;
+  --radius: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #101b2f;
+    --surface:   #172741;
+    --text:      #e8eef7;
+    --muted:     #a9b6cb;
+    --border:    #26375a;
+    --stone:     #33456a;
+    --danger:    #ff8b7d;
+
+    --btn-bg:    var(--yellow);
+    --btn-text:  var(--navy);
+    --select-bg: var(--yellow);
+    --select-text: var(--navy);
+    --focus:     var(--yellow);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    0
+    env(safe-area-inset-left, 0px);
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+h1 { font-size: clamp(1.5rem, 5vw, 2rem); }
+h2 { font-size: clamp(1.3rem, 4.2vw, 1.6rem); }
+p { margin: 0 0 14px; max-width: var(--line-max); }
+
+a { color: var(--blue); }
+@media (prefers-color-scheme: dark) { a { color: var(--yellow); } }
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ----------- Yerleşim ----------- */
+.app {
+  max-width: 680px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.progress-wrap { padding: 16px 20px 0; }
+
+.content {
+  flex: 1;
+  padding: 8px 20px 120px; /* alttaki yapışkan navigasyona pay */
+}
+
+.screen { animation: slidein .25s ease; }
+@keyframes slidein {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ----------- İlerleme göstergesi: yoldaki taşlar ----------- */
+.stones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stones-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.stone {
+  width: 30px; height: 30px;
+  flex: 0 0 auto;
+  background: var(--stone);
+  color: transparent;
+  display: grid; place-items: center;
+  /* Düzensiz, doğal görünen köşeler */
+  border-radius: 47% 53% 44% 56% / 55% 42% 58% 45%;
+  transition: transform .25s ease, background .25s ease;
+}
+.stone:nth-child(2n)  { border-radius: 58% 42% 55% 45% / 44% 57% 43% 56%; }
+.stone:nth-child(3n)  { border-radius: 43% 57% 52% 48% / 57% 44% 56% 43%; }
+.stone.done { background: var(--yellow); color: var(--navy); }
+.stone.current {
+  background: var(--navy);
+  transform: scale(1.25);
+}
+@media (prefers-color-scheme: dark) {
+  .stone.current { background: var(--yellow); }
+}
+.stone svg { width: 16px; height: 16px; display: block; }
+.stones-label {
+  flex: 0 0 auto;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ----------- Karşılama ----------- */
+.section-list { list-style: none; margin: 18px 0; padding: 0; }
+.section-list li {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.section-list li:last-child { border-bottom: 0; }
+.rock-icon {
+  width: 34px; height: 34px; flex: 0 0 auto;
+  color: var(--petrol);
+}
+@media (prefers-color-scheme: dark) { .rock-icon { color: var(--teal); } }
+.rock-icon svg { width: 100%; height: 100%; display: block; }
+.lead {
+  font-weight: 600;
+  color: var(--teal);
+  font-size: 1.05rem;
+}
+
+/* ----------- Butonlar ----------- */
+.btn {
+  font: inherit; font-weight: 600;
+  border: 0; border-radius: 12px;
+  padding: 14px 22px;
+  min-height: 52px;
+  cursor: pointer;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  transition: filter .15s ease, opacity .15s ease;
+}
+.btn:hover { filter: brightness(1.06); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-block { width: 100%; }
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1.5px solid var(--border);
+}
+.btn-yellow {
+  background: var(--yellow);
+  color: var(--navy);
+}
+
+/* ----------- Tanışma formu ----------- */
+.field { margin-bottom: 20px; }
+.field > label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.field input[type="text"],
+.field input[type="tel"],
+.field input[type="email"] {
+  width: 100%;
+  font: inherit;
+  padding: 13px 14px;
+  min-height: 50px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+}
+.field input::placeholder { color: var(--muted); opacity: .8; }
+.field input[aria-invalid="true"] { border-color: var(--danger); }
+.hint { color: var(--muted); font-size: .88rem; margin: 4px 0 0; }
+.error {
+  color: var(--danger);
+  font-size: .9rem;
+  font-weight: 500;
+  margin: 6px 0 0;
+  min-height: 0;
+}
+.error:empty { display: none; }
+
+/* Radyo grubu (iletişim tercihi) */
+.radio-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.radio-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  min-height: 50px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.radio-row input { width: 20px; height: 20px; accent-color: var(--blue); margin: 0; }
+.radio-row:has(input:checked) {
+  border-color: var(--select-bg);
+  background: color-mix(in srgb, var(--select-bg) 8%, var(--bg));
+}
+
+/* KVKK onay */
+.consent {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+}
+.consent input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--blue); }
+.consent label { font-size: .96rem; }
+
+/* ----------- Envanter maddeleri ----------- */
+.instruction { color: var(--muted); margin-bottom: 18px; }
+.items { display: flex; flex-direction: column; gap: 12px; }
+.item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border-left: 5px solid var(--border);
+  padding: 14px 16px;
+  transition: border-color .2s ease;
+}
+.item.answered { border-left-color: var(--gold); }
+.item legend {
+  font-weight: 500;
+  padding: 0;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.item fieldset { border: 0; margin: 0; padding: 0; }
+
+/* Segmentli cevap butonları (gerçek radio) */
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.choice { position: relative; }
+.choice input {
+  position: absolute; opacity: 0;
+  width: 1px; height: 1px;
+  pointer-events: none;
+}
+.choice span {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 48px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.choice input:checked + span {
+  background: var(--select-bg);
+  color: var(--select-text);
+  border-color: var(--select-bg);
+}
+.choice input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ----------- Yapışkan navigasyon ----------- */
+.nav {
+  position: sticky;
+  bottom: 0;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 12px;
+}
+.nav .spacer { flex: 1; }
+.nav-hint { color: var(--muted); font-size: .9rem; font-weight: 600; }
+
+/* ----------- Hata kutusu (gönderim) ----------- */
+.alert {
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg));
+  border: 1.5px solid var(--danger);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+.alert strong { color: var(--danger); }
+
+/* ----------- Kapanış ----------- */
+.closing-icon { width: 56px; height: 56px; color: var(--teal); margin-bottom: 8px; }
+.closing-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+
+/* ----------- Modal ----------- */
+dialog.modal {
+  border: 0;
+  border-radius: 18px;
+  padding: 0;
+  width: min(920px, 94vw);
+  max-height: 90dvh;
+  background: var(--bg);
+  color: var(--text);
+  overflow: auto;
+}
+dialog.modal::backdrop { background: rgba(10, 18, 35, .55); }
+@media (prefers-reduced-motion: no-preference) {
+  dialog.modal[open] { animation: pop .2s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+.modal-inner { padding: 28px 24px 32px; }
+.modal-close {
+  position: sticky; top: 0; float: right;
+  width: 44px; height: 44px;
+  border: 0; border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: grid; place-items: center;
+}
+.modal-close svg { width: 20px; height: 20px; }
+.eyebrow {
+  text-align: center;
+  color: var(--teal);
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-size: .8rem;
+  margin-bottom: 4px;
+}
+.modal h2 { text-align: center; margin-bottom: 24px; }
+
+.steps { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.steps .divider { display: none; }
+.step { padding: 0 20px; }
+.step + .step { border-left: 1px solid var(--border); }
+.step h3 {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: 1.1rem;
+}
+.flow {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 4px; margin-top: 18px;
+}
+.node { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 72px; text-align: center; }
+.node .ring {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 2px solid var(--gold);
+  color: var(--gold);
+  background: color-mix(in srgb, var(--yellow) 22%, var(--bg));
+}
+.node .ring svg { width: 24px; height: 24px; }
+.node span { font-size: .82rem; color: var(--muted); font-weight: 600; }
+.flow .connector { flex: 1; height: 2px; background: var(--gold); margin-top: 26px; }
+.step.blue h3 { color: var(--blue); }
+.step.blue .ring { border-color: var(--blue); color: var(--blue); background: color-mix(in srgb, var(--blue) 12%, var(--bg)); }
+.step.blue .connector { background: var(--blue-line); }
+
+.pkg-cards { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+.pkg-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  border: 0; border-radius: 16px;
+  padding: 22px 22px;
+  min-height: 84px;
+  text-decoration: none;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 700; font-size: 1.2rem;
+  text-align: left;
+  width: 100%;
+}
+.pkg-card.deneme { background: var(--yellow); color: var(--navy); }
+.pkg-card.danismanlik { background: var(--petrol); color: #fff; }
+.pkg-card[aria-disabled="true"] { cursor: default; }
+.pkg-card .arrow {
+  width: 40px; height: 40px; flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--navy-btn);
+  color: #fff;
+  display: grid; place-items: center;
+}
+.pkg-card.deneme .arrow { color: #fff; }
+.pkg-card .arrow svg { width: 20px; height: 20px; }
+
+.footnote { color: var(--muted); font-size: .82rem; margin-top: 26px; }
+
+/* ----------- Mobil ----------- */
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  .steps { grid-template-columns: 1fr; }
+  .step { padding: 0; }
+  .step + .step { border-left: 0; border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="progress-wrap" id="progress" hidden>
+    <div class="stones">
+      <div class="stones-row" id="stones"></div>
+      <div class="stones-label" id="stonesLabel"></div>
+    </div>
+  </div>
+
+  <main class="content" id="content" tabindex="-1"><!-- ekranlar JS ile kurulur --></main>
+</div>
+
+<!-- Modal: Çalışma sistemini kur -->
+<dialog class="modal" id="pkgModal" aria-labelledby="modalTitle">
+  <div class="modal-inner">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <p class="eyebrow">Paketini seç</p>
+    <h2 id="modalTitle">Çalışma sistemini kur</h2>
+
+    <div class="steps">
+      <div class="step">
+        <h3>1. Adım: Deneme paketi aboneliğini başlat</h3>
+        <p>Her ay kapına gelen deneme paketindeki programı takip et. Denemeleri çöz ve analiz sistemine kodla. Nerede net kaybın var, nerede geliştin, nerede durakladın tespit et. Detaylı soru çözümlerini izle, eksiklerini tamamla. Döngüyü tekrar et.</p>
+        <div class="flow">
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+            <span>Denemeler</span>
+          </div>
+          <div class="connector"></div>
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-1.5-1.3-4-2-6.5-2C4 5 3 5.3 3 5.3V19s1-.3 2.5-.3c2.5 0 5 .7 6.5 2 1.5-1.3 4-2 6.5-2 1.5 0 2.5.3 2.5.3V5.3S20 5 18.5 5C16 5 13.5 5.7 12 7Z"/><path d="M12 7v14"/></svg></span>
+            <span>Analiz</span>
+          </div>
+          <div class="connector"></div>
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></span>
+            <span>Tekrar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step blue">
+        <h3>2. Adım: Uzmanlarla ilerle</h3>
+        <p>Deneme sonuçlarını mentörünle birlikte analiz et, çalışma programını belirle. Kariyer psikolojik danışmanınla birlikte psikolojik sağlamlığını artır, sınav sürecini kontrol altına al.</p>
+        <div class="flow">
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2Z"/><path d="M20 13a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2 2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2Z"/></svg></span>
+            <span>Mentör</span>
+          </div>
+          <div class="connector"></div>
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="5" cy="10" r="2"/><circle cx="19" cy="10" r="2"/></svg></span>
+            <span>Danışman</span>
+          </div>
+          <div class="connector"></div>
+          <div class="node">
+            <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span>
+            <span>Takip</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pkg-cards">
+      <a class="pkg-card deneme" id="pkgDeneme" href="#" target="_blank" rel="noopener">
+        Deneme paketleri
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+      <a class="pkg-card danismanlik" id="pkgDanismanlik" href="#" target="_blank" rel="noopener">
+        Danışmanlık paketleri
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+/* ============================================================
+   AYARLAR — yayına almadan önce bu sabitleri doldur.
+   ============================================================ */
+
+// Google Apps Script web uygulaması URL'i. BOŞ bırakılırsa yanıtlar
+// hiçbir yere kaydedilmez (geliştirme modu). Ayrıntı için README.
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzSrX830l0YAP9jJFmhCglSfH5exDbmpfE9_N07EwwB54Ic01TQkVxVxmVPnPq6W624/exec";
+
+// Ücretsiz görüşme randevusu (Google Calendar appointment link).
+const CALENDAR_URL = "https://calendar.app.google/YXjQL2WoZ4AZUUgn9";
+
+// Paket sayfaları. Gerçek adreslerle değiştir. "#" veya boş kalırsa
+// karttaki tıklama hiçbir şey yapmaz (sayfa zıplamaz).
+const PACKAGE_LINKS = {
+  deneme: "#",       // Deneme paketleri sayfası
+  danismanlik: "#",  // Danışmanlık paketleri sayfası
+};
+
+// KVKK aydınlatma metni. "#" ise README'de belirtilmiştir.
+const KVKK_URL = "#";
+
+// localStorage anahtarı ve sürümü.
+const STORAGE_KEY = "ben-envanteri-v1";
+
+/* ============================================================
+   İÇERİK — Tüm bölümler ve maddeler yalnızca burada durur.
+   Soru/bölüm eklemek: bu diziyi düzenle, başka yeri değiştirme.
+   Her maddenin id'si: <bolum.id> + sıra (1'den) → örn. "calisma1".
+   ============================================================ */
+const BOLUMLER = [
+  {
+    id: "calisma",
+    ad: "Çalışma alışkanlığı",
+    baslik: "Çalışma alışkanlığı: zaman yönetimi ve planlama",
+    maddeler: [
+      "Ders çalışırken dikkatim çok çabuk dağılıyor.",
+      "Ders çalışma yöntemlerini belirlemekte ve çalışma planı yapmakta zorlanıyorum.",
+      "Gün içindeki zamanımı yönetmekte ve düzenli çalışmakta zorlanıyorum.",
+      "Ders çalışma isteğim çabuk düşüyor.",
+    ],
+  },
+  {
+    id: "sinav",
+    ad: "Sınav yönetimi",
+    baslik: "Sınav yönetimi",
+    maddeler: [
+      "Sınavlarda bildiklerimi unutup aşırı heyecanlanıyorum.",
+      "Sınav sırasında performansım, evde çalışırken gösterdiğim performanstan belirgin şekilde düşük oluyor.",
+      "Sınavlarda hak ettiğimi düşündüğüm puanı alamıyorum ve bunun sebebini çözmek isterim.",
+    ],
+  },
+  {
+    id: "kariyer",
+    ad: "Kariyer planı",
+    baslik: "Kariyer planı",
+    maddeler: [
+      "Meslekler ve çalışma alanları hakkında bilgim yok.",
+      "Güçlü yönlerimi fark etmek ve bunları geliştirmek için yönlendirilmeyi isterim.",
+      "Gelecekle ilgili birden fazla seçeneğim var ama hangisinin bana daha uygun olduğunu ayırt etmekte zorlanıyorum.",
+    ],
+  },
+  {
+    id: "karar",
+    ad: "Karar verme",
+    baslik: "Karar verme",
+    maddeler: [
+      "Kritik kararlar alırken (bölüm değiştirme, meslek seçimi gibi) sürekli tıkandığımı veya kararsız kaldığımı hissediyorum.",
+      "Hangi güçlü yönlerimi öne çıkarmam ve hangi eksiklerimi geliştirmem gerektiği konusunda objektif bir geri bildirime ihtiyacım var.",
+      "Hedeflerimi tek başıma sürdürmek bazen zorlaşıyor; yanımda yol gösteren biri olduğunda daha verimli ilerleyeceğimi düşünüyorum.",
+    ],
+  },
+  {
+    id: "aile",
+    ad: "Aile ve sosyal ortam",
+    baslik: "Aile ve sosyal ortam",
+    maddeler: [
+      "Ailemle açık bir şekilde iletişim kurmakta zorlanıyorum.",
+      "Kendimi yalnız hissediyorum.",
+      "Ailemin başarı beklentisi yüksek olduğu için zorlanıyorum.",
+    ],
+  },
+];
+
+const CEVAP_SECENEKLERI = ["Evet", "Hayır", "Bazen"];
+
+// Tüm maddeleri düz listeye çevir (id, bolum, metin).
+const SORULAR = BOLUMLER.flatMap((b) =>
+  b.maddeler.map((metin, i) => ({ id: b.id + (i + 1), bolum: b.ad, metin }))
+);
+
+const FORM_ALANLARI = [
+  { name: "adSoyad",   label: "Adı soyadı",           type: "text",  autocomplete: "name",  placeholder: "" },
+  { name: "sinifBrans",label: "Sınıf / branş",        type: "text",  placeholder: "Örnek: 12. sınıf, Sayısal" },
+  { name: "hedef",     label: "Hedef okul / bölüm",   type: "text",  placeholder: "Örnek: ODTÜ, Bilgisayar Mühendisliği" },
+  { name: "telefon",   label: "Telefon",              type: "tel",   inputmode: "tel", placeholder: "05xx xxx xx xx" },
+  { name: "eposta",    label: "E-posta",              type: "email", inputmode: "email", placeholder: "ornek@eposta.com" },
+];
+const ILETISIM_SECENEKLERI = ["WhatsApp", "Telefon araması", "E-posta"];
+
+/* ============================================================
+   DURUM (state) + kalıcılık
+   ============================================================ */
+const bosForm = () => ({
+  adSoyad: "", sinifBrans: "", hedef: "",
+  telefon: "", eposta: "",
+  iletisimTercihi: "", kvkkOnay: false,
+});
+
+let state = {
+  step: "welcome",      // "welcome" | "form" | 0..N-1 (bölüm) | "closing"
+  form: bosForm(),
+  yanitlar: {},         // { calisma1: "Evet" }
+  submitted: false,
+};
+
+// ?reset=1 → kayıtlı durumu sil
+try {
+  const params = new URLSearchParams(location.search);
+  if (params.get("reset") === "1") {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  }
+} catch (e) {}
+
+function kaydet() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) { /* erişilemezse yalnızca bellekte kalır */ }
+}
+function yukle() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && typeof saved === "object") {
+      state = {
+        step: saved.step ?? "welcome",
+        form: Object.assign(bosForm(), saved.form || {}),
+        yanitlar: saved.yanitlar || {},
+        submitted: !!saved.submitted,
+      };
+      if (state.submitted) state.step = "closing";
+    }
+  } catch (e) { /* bozuk veri → varsayılan durumla devam */ }
+}
+
+/* ============================================================
+   Yardımcılar
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+function esc(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids) if (kid != null) n.append(kid);
+  return n;
+}
+function svg(paths, opts = {}) {
+  const s = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${opts.w || 2}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+  const span = document.createElement("span");
+  span.innerHTML = s; // sabit, güvenli SVG
+  return span.firstChild;
+}
+
+/* ============================================================
+   Doğrulama
+   ============================================================ */
+const EPOSTA_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function validateAlan(name, value) {
+  const v = typeof value === "string" ? value.trim() : "";
+  switch (name) {
+    case "adSoyad":
+      if (!v) return "Adını ve soyadını yaz.";
+      if (v.split(/\s+/).filter(Boolean).length < 2) return "Adını ve soyadını birlikte yaz.";
+      return "";
+    case "sinifBrans":
+      return v ? "" : "Sınıfını ve branşını yaz. Örnek: 12. sınıf, Sayısal.";
+    case "hedef":
+      return v ? "" : "Hedef okul ve bölümünü yaz. Örnek: ODTÜ, Bilgisayar Mühendisliği.";
+    case "telefon": {
+      const d = v.replace(/\D/g, "");
+      if (!d) return "Telefon numaranı yaz.";
+      if (d.length < 10 || d.length > 13) return "Geçerli bir telefon numarası yaz.";
+      return "";
+    }
+    case "eposta":
+      if (!v) return "E-posta adresini yaz.";
+      return EPOSTA_RE.test(v) ? "" : "Geçerli bir e-posta adresi yaz.";
+    case "iletisimTercihi":
+      return v ? "" : "Bir iletişim tercihi seç.";
+    case "kvkkOnay":
+      return value ? "" : "Devam etmek için aydınlatma metnini onayla.";
+    default:
+      return "";
+  }
+}
+function formGecerliMi() {
+  for (const f of FORM_ALANLARI) if (validateAlan(f.name, state.form[f.name])) return false;
+  if (validateAlan("iletisimTercihi", state.form.iletisimTercihi)) return false;
+  if (validateAlan("kvkkOnay", state.form.kvkkOnay)) return false;
+  return true;
+}
+
+/* ============================================================
+   Ekran akışı
+   ============================================================ */
+function stepIndex() {
+  // Doğrusal sıra: welcome(0) form(1) bölümler(2..) closing(son)
+  if (state.step === "welcome") return 0;
+  if (state.step === "form") return 1;
+  if (state.step === "closing") return 2 + BOLUMLER.length;
+  return 2 + state.step; // bölüm indexi
+}
+function goto(step) {
+  state.step = step;
+  kaydet();
+  render();
+  // Ekran geçişinde en üste kaydır + odağı başlığa taşı
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    const content = $("#content");
+    const h = content.querySelector("h1, h2");
+    if (h) { h.setAttribute("tabindex", "-1"); h.focus(); }
+    else content.focus();
+  });
+}
+
+/* ---------- İlerleme göstergesi ---------- */
+function renderProgress() {
+  const wrap = $("#progress");
+  const isSection = typeof state.step === "number";
+  const showBar = isSection || state.step === "form";
+  wrap.hidden = !showBar;
+  if (!showBar) return;
+
+  const stones = $("#stones");
+  stones.innerHTML = "";
+  BOLUMLER.forEach((_, i) => {
+    const s = el("div", { class: "stone", "aria-hidden": "true" });
+    if (isSection) {
+      if (i < state.step) { s.classList.add("done"); s.append(svg('<path d="m5 12 5 5L20 7"/>', { w: 3 })); }
+      else if (i === state.step) s.classList.add("current");
+    }
+    stones.append(s);
+  });
+  $("#stonesLabel").textContent = isSection
+    ? `Bölüm ${state.step + 1} / ${BOLUMLER.length}`
+    : "Önce tanışalım";
+}
+
+/* ============================================================
+   Ekranlar
+   ============================================================ */
+function screenWelcome() {
+  const list = el("ul", { class: "section-list" });
+  BOLUMLER.forEach((b) => {
+    list.append(el("li", {},
+      (() => { const r = el("span", { class: "rock-icon" }); r.append(rockSvg()); return r; })(),
+      el("span", { text: b.ad })
+    ));
+  });
+  return el("section", { class: "screen" },
+    el("h1", { text: "Hedeflerine ulaşman için yolundaki taşları birlikte temizleyelim." }),
+    el("p", { text: "Kariyer psikolojik danışman kadromuz tarafından hazırlanan tarama envanteri ile sınav yolculuğunda kendini biraz daha iyi anlayabilmen mümkün olacak." }),
+    list,
+    el("p", { class: "lead", text: "Hazırsan başlayalım!" }),
+    el("button", { class: "btn btn-block", type: "button", onclick: () => goto("form") }, "Başla")
+  );
+}
+function rockSvg() {
+  // Yassı, düzensiz çakıl taşı silüeti (dolu).
+  const span = document.createElement("span");
+  span.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.8 15.4c-.5-2.3 1-4.7 3.4-5.6C7.4 8 9.9 7.2 12 7.6c1.7-1 4-.7 5.5.6 1.9.4 3.3 2.1 3.2 3.9 0 .6-.2 1.2-.5 1.7.4 1.7-.7 3.5-2.6 4.2-2.3 1.4-5.3 1.8-8 1.2-1.6-.2-3-.6-4.2-1.3-.9-.5-1.5-1.3-1.6-2.2Z" opacity=".92"/><path d="M6.6 11.2c.9-.9 2.3-1.4 3.6-1.2" fill="none" stroke="var(--bg)" stroke-width="1.3" stroke-linecap="round" opacity=".5"/></svg>';
+  return span.firstChild;
+}
+
+function screenForm() {
+  const form = el("form", { class: "screen", novalidate: true, id: "tanismaForm" });
+  form.append(el("h2", { text: "Seni tanıyabilir miyiz?" }));
+
+  FORM_ALANLARI.forEach((f) => {
+    const errId = "err-" + f.name;
+    const input = el("input", {
+      type: f.type, id: f.name, name: f.name,
+      value: state.form[f.name] || "",
+      autocomplete: f.autocomplete, inputmode: f.inputmode,
+      placeholder: f.placeholder,
+      "aria-describedby": errId,
+    });
+    input.addEventListener("input", () => {
+      state.form[f.name] = input.value;
+      kaydet();
+      // Zaten hatalıysa yazarken canlı temizle
+      if (input.getAttribute("aria-invalid") === "true") setAlanHata(f.name, input, errId);
+    });
+    input.addEventListener("blur", () => setAlanHata(f.name, input, errId));
+    form.append(el("div", { class: "field" },
+      el("label", { for: f.name, text: f.label }),
+      input,
+      el("p", { class: "error", id: errId, "aria-live": "polite" })
+    ));
+  });
+
+  // İletişim tercihi (radyo grubu)
+  const radios = el("div", { class: "radio-list" });
+  ILETISIM_SECENEKLERI.forEach((opt, i) => {
+    const rid = "iletisim-" + i;
+    const inp = el("input", {
+      type: "radio", name: "iletisimTercihi", id: rid, value: opt,
+      checked: state.form.iletisimTercihi === opt,
+    });
+    inp.addEventListener("change", () => {
+      state.form.iletisimTercihi = opt; kaydet();
+      setGroupHata("iletisimTercihi", "err-iletisim");
+    });
+    radios.append(el("label", { class: "radio-row", for: rid }, inp, el("span", { text: opt })));
+  });
+  const fsIletisim = el("fieldset", { class: "field", style: "border:0;margin:0;padding:0", "aria-describedby": "err-iletisim" },
+    el("legend", { style: "font-weight:600;margin-bottom:6px;padding:0", text: "İletişim tercihi" }),
+    radios,
+    el("p", { class: "error", id: "err-iletisim", "aria-live": "polite" })
+  );
+  form.append(fsIletisim);
+
+  // KVKK
+  const kvkkLabel = el("label", { for: "kvkkOnay" });
+  kvkkLabel.append(document.createTextNode("Aydınlatma metnini okudum, kişisel verilerimin işlenmesini kabul ediyorum."));
+  if (KVKK_URL && KVKK_URL !== "#") {
+    kvkkLabel.append(document.createTextNode(" "));
+    kvkkLabel.append(el("a", { href: KVKK_URL, target: "_blank", rel: "noopener", text: "(Aydınlatma metni)" }));
+  }
+  const kvkkInput = el("input", { type: "checkbox", id: "kvkkOnay", name: "kvkkOnay", checked: state.form.kvkkOnay, "aria-describedby": "err-kvkk" });
+  kvkkInput.addEventListener("change", () => { state.form.kvkkOnay = kvkkInput.checked; kaydet(); setGroupHata("kvkkOnay", "err-kvkk"); });
+  form.append(el("div", { class: "field" },
+    el("div", { class: "consent" }, kvkkInput, kvkkLabel),
+    el("p", { class: "error", id: "err-kvkk", "aria-live": "polite" })
+  ));
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); ileriFromForm(); });
+  return form;
+}
+function setAlanHata(name, input, errId) {
+  const msg = validateAlan(name, input.value);
+  input.setAttribute("aria-invalid", msg ? "true" : "false");
+  const errEl = document.getElementById(errId);
+  if (errEl) errEl.textContent = msg;
+  return !msg;
+}
+function setGroupHata(name, errId) {
+  const msg = validateAlan(name, state.form[name]);
+  const errEl = document.getElementById(errId);
+  if (errEl) errEl.textContent = msg;
+  return !msg;
+}
+function ileriFromForm() {
+  let firstBad = null;
+  FORM_ALANLARI.forEach((f) => {
+    const input = document.getElementById(f.name);
+    const ok = setAlanHata(f.name, input, "err-" + f.name);
+    if (!ok && !firstBad) firstBad = input;
+  });
+  if (!setGroupHata("iletisimTercihi", "err-iletisim") && !firstBad) firstBad = document.querySelector('input[name="iletisimTercihi"]');
+  if (!setGroupHata("kvkkOnay", "err-kvkk") && !firstBad) firstBad = document.getElementById("kvkkOnay");
+  if (firstBad) { firstBad.focus(); return; }
+  goto(0);
+}
+
+function screenSection(idx) {
+  const b = BOLUMLER[idx];
+  const sec = el("section", { class: "screen" });
+  sec.append(
+    el("h2", { text: b.baslik }),
+    el("p", { class: "instruction", text: "Aşağıdaki ifadeleri okuyarak sana en uygun seçeneği işaretle." })
+  );
+  const items = el("div", { class: "items" });
+  b.maddeler.forEach((metin, i) => {
+    const qid = b.id + (i + 1);
+    const answered = !!state.yanitlar[qid];
+    const item = el("div", { class: "item" + (answered ? " answered" : ""), id: "item-" + qid });
+    const fs = el("fieldset");
+    fs.append(el("legend", { text: metin }));
+    const choices = el("div", { class: "choices" });
+    CEVAP_SECENEKLERI.forEach((opt, ci) => {
+      const cid = qid + "-" + ci;
+      const inp = el("input", { type: "radio", name: qid, id: cid, value: opt, checked: state.yanitlar[qid] === opt });
+      inp.addEventListener("change", () => onCevap(idx, qid, opt));
+      choices.append(el("label", { class: "choice", for: cid }, inp, el("span", { text: opt })));
+    });
+    fs.append(choices);
+    item.append(fs);
+    items.append(item);
+  });
+  sec.append(items);
+  sec.append(navFor(idx));
+  return sec;
+}
+function onCevap(idx, qid, opt) {
+  state.yanitlar[qid] = opt;
+  kaydet();
+  const item = document.getElementById("item-" + qid);
+  if (item) item.classList.add("answered");
+  updateNav(idx);
+}
+function bolumTamamMi(idx) {
+  return BOLUMLER[idx].maddeler.every((_, i) => !!state.yanitlar[BOLUMLER[idx].id + (i + 1)]);
+}
+function kalanSayisi(idx) {
+  return BOLUMLER[idx].maddeler.reduce((n, _, i) => n + (state.yanitlar[BOLUMLER[idx].id + (i + 1)] ? 0 : 1), 0);
+}
+function navFor(idx) {
+  const sonBolum = idx === BOLUMLER.length - 1;
+  const geri = el("button", { class: "btn btn-ghost", type: "button", onclick: () => goto(idx === 0 ? "form" : idx - 1) }, "Geri");
+  const hint = el("span", { class: "nav-hint", id: "navHint" });
+  const ileri = el("button", {
+    class: "btn", type: "button", id: "navNext",
+    onclick: () => { if (sonBolum) gonder(); else goto(idx + 1); },
+  }, sonBolum ? "Yanıtları gönder" : "İleri");
+  const nav = el("div", { class: "nav" }, geri, el("span", { class: "spacer" }), hint, ileri);
+  setTimeout(() => updateNav(idx), 0);
+  return nav;
+}
+function updateNav(idx) {
+  const next = document.getElementById("navNext");
+  const hint = document.getElementById("navHint");
+  if (!next) return;
+  const kalan = kalanSayisi(idx);
+  next.disabled = kalan > 0;
+  if (hint) hint.textContent = kalan > 0 ? `${kalan} madde kaldı` : "";
+}
+
+/* ---------- Gönderim ---------- */
+function buildPayload() {
+  return {
+    gonderimZamani: new Date().toISOString(),
+    adSoyad: state.form.adSoyad.trim(),
+    sinifBrans: state.form.sinifBrans.trim(),
+    hedef: state.form.hedef.trim(),
+    telefon: state.form.telefon.trim(),
+    eposta: state.form.eposta.trim(),
+    iletisimTercihi: state.form.iletisimTercihi,
+    kvkkOnay: !!state.form.kvkkOnay,
+    sorular: SORULAR.map((s) => ({ id: s.id, bolum: s.bolum, metin: s.metin })),
+    yanitlar: state.yanitlar,
+  };
+}
+async function gonder() {
+  const next = document.getElementById("navNext");
+  const eskiMetin = next ? next.textContent : "";
+  hataKutusuTemizle();
+  if (next) { next.disabled = true; next.textContent = "Gönderiliyor…"; }
+
+  const payload = buildPayload();
+
+  // Geliştirme modu: ENDPOINT boşsa kaydetmeden akışı sürdür.
+  if (!ENDPOINT) {
+    console.warn("[Geliştirme modu] ENDPOINT boş — yanıtlar hiçbir yere gönderilmedi. Payload:", payload);
+    state.submitted = true; kaydet();
+    goto("closing");
+    return;
+  }
+
+  try {
+    // no-cors yanıtı OPAKTIR: içeriğini hiçbir zaman okuyamayız. Apps Script
+    // doPost'u veriyi yazdıktan SONRA farklı bir alan adına yönlendirir; bu
+    // yönlendirme bazı ortamlarda fetch söz'ünü uzun süre askıda bırakabilir.
+    // Bu yüzden fetch'i bir zaman aşımıyla yarıştırırız:
+    //   - fetch çözülürse (opak)  -> başarı
+    //   - fetch REDDEDİLİRSE (ör. internet yok) -> hata kutusu
+    //   - süre dolarsa            -> veri sunucuda yazıldığı için başarı say
+    const istek = fetch(ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    }).then(() => "ok", (e) => ({ hata: e })); // reddi yakala, asla patlama
+
+    const zamanAsimi = new Promise((res) => setTimeout(() => res("timeout"), 12000));
+    const sonuc = await Promise.race([istek, zamanAsimi]);
+
+    if (sonuc && sonuc.hata) throw sonuc.hata; // fetch gerçekten başarısız
+
+    // "ok" veya "timeout" -> başarı
+    state.submitted = true; kaydet();
+    goto("closing");
+  } catch (err) {
+    if (next) { next.disabled = false; next.textContent = eskiMetin || "Yanıtları gönder"; }
+    hataKutusuGoster();
+  }
+}
+function hataKutusuGoster() {
+  const sec = $("#content .screen");
+  if (!sec) return;
+  const box = el("div", { class: "alert", role: "alert", tabindex: "-1", id: "gonderimHata" },
+    el("strong", { text: "Yanıtların gönderilemedi. " }),
+    document.createTextNode("İnternet bağlantını kontrol edip tekrar dene. Cevapların kayıtlı, kaybolmadı.")
+  );
+  sec.append(box);
+  box.focus();
+}
+function hataKutusuTemizle() { const b = document.getElementById("gonderimHata"); if (b) b.remove(); }
+
+function screenClosing() {
+  const sec = el("section", { class: "screen" });
+  const icon = el("span", { class: "closing-icon" });
+  icon.append(svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>'));
+  sec.append(
+    icon,
+    el("h2", { text: "Yanıtların Kariyer Psikolojik Danışman ekibimizle paylaşıldı." }),
+    el("p", { text: "Bu çalışmada amacımız sana özel ihtiyaçlarını birlikte fark etmek ve neye odaklanman gerektiğini belirlemek." }),
+    el("p", { text: "Cevapların psikolojik danışmanın tarafından seninle birlikte değerlendirilecek ve sınava hazırlanırken hangi alanlara odaklanabileceğin netleştirilecek." }),
+    el("p", { text: "Bunun için kısa bir değerlendirme görüşmesi yapmalısın." })
+  );
+  const actions = el("div", { class: "closing-actions" });
+  actions.append(
+    el("a", { class: "btn btn-yellow", href: CALENDAR_URL, target: "_blank", rel: "noopener", role: "button", text: "Ücretsiz görüşme randevusu oluştur" }),
+    el("button", { class: "btn btn-ghost", type: "button", onclick: openModal }, "Görüşme yapmadan devam et")
+  );
+  sec.append(actions);
+  return sec;
+}
+
+/* ---------- Modal ---------- */
+function setupPaketKart(id, href) {
+  const a = document.getElementById(id);
+  const gecerli = href && href !== "#";
+  if (gecerli) {
+    a.setAttribute("href", href);
+    a.removeAttribute("aria-disabled");
+  } else {
+    a.setAttribute("href", "#");
+    a.setAttribute("aria-disabled", "true");
+    a.addEventListener("click", (e) => e.preventDefault()); // sayfa zıplamasın
+  }
+}
+function openModal() {
+  const dlg = $("#pkgModal");
+  if (typeof dlg.showModal === "function") dlg.showModal();
+  else dlg.setAttribute("open", "");
+}
+function setupModal() {
+  const dlg = $("#pkgModal");
+  $("#modalClose").addEventListener("click", () => dlg.close());
+  // Arka plana tıklayınca kapan
+  dlg.addEventListener("click", (e) => {
+    const r = dlg.getBoundingClientRect();
+    const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (!inside) dlg.close();
+  });
+  setupPaketKart("pkgDeneme", PACKAGE_LINKS.deneme);
+  setupPaketKart("pkgDanismanlik", PACKAGE_LINKS.danismanlik);
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render() {
+  renderProgress();
+  const content = $("#content");
+  content.innerHTML = "";
+  let screen;
+  if (state.step === "welcome") screen = screenWelcome();
+  else if (state.step === "form") screen = screenForm();
+  else if (state.step === "closing") screen = screenClosing();
+  else screen = screenSection(state.step);
+  content.append(screen);
+}
+
+/* ============================================================
+   Başlat
+   ============================================================ */
+yukle();
+setupModal();
+render();
+</script>
+</body>
+</html>
